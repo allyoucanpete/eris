@@ -1,0 +1,36 @@
+﻿@page "/netflix"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Eris.Shared
+@inject HttpClient Http
+
+<PageTitle>Netflix</PageTitle>
+
+<h1>Netflix</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (status is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>Playing: @(status.IsPlaying)</div>
+}
+
+@code {
+    private PlaybackStatus? status;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            status = await Http.GetFromJsonAsync<PlaybackStatus>("api/netflix");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}
