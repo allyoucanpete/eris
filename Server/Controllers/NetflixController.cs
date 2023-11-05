@@ -28,6 +28,7 @@ public class NetflixController : ControllerBase
     [HttpPut("pause")]
     public async Task<PlaybackStatus> Pause()
     {
+        _logger.LogInformation("Pause");
         await _hub.Clients.All.Pause();
         return new PlaybackStatus(IsPlaying: false);
     }
@@ -35,6 +36,7 @@ public class NetflixController : ControllerBase
     [HttpPut("play")]
     public async Task<PlaybackStatus> Play()
     {
+        _logger.LogInformation("Play");
         await _hub.Clients.All.Play();
         return new PlaybackStatus(IsPlaying: true);
     }

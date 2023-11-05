@@ -1,6 +1,4 @@
 ﻿@page "/netflix"
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Eris.Shared
 @inject HttpClient Http
 
@@ -17,6 +15,9 @@
 else
 {
     <div>Playing: @(status.IsPlaying)</div>
+    
+    <button @onclick="Pause">Pause</button>
+    <button @onclick="Play">Play</button>
 }
 
 @code {
@@ -24,13 +25,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            status = await Http.GetFromJsonAsync<PlaybackStatus>("api/netflix");
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
+        status = await Http.GetFromJsonAsync<PlaybackStatus>("api/netflix");
+    }
+
+    private async Task Pause() {
+        var response = await Http.PutAsync("api/netflix/pause", content: null);
+        status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
+    }
+
+    private async Task Play() {
+        var response = await Http.PutAsync("api/netflix/play", content: null);
+        status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
     }
 }
