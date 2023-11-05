@@ -41,7 +41,7 @@ else
     app.UseHsts();
 }
 
-app.UseCors(cors => cors.WithOrigins("chrome-extension://bmdflkmlomgmgbigbedjeillldlinbfd").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+app.UseCors(cors => cors.WithOrigins("https://www.netflix.com").AllowAnyHeader().AllowAnyMethod().AllowCredentials()    );
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
