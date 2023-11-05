@@ -1,40 +1,100 @@
 ﻿@page "/netflix"
-@using Eris.Shared
+@using Eris.Shared.Models
 @inject HttpClient Http
 
 <PageTitle>Netflix</PageTitle>
 
-<h1>Netflix</h1>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mud-height-full py-4">
+    <h1>Netflix</h1>
+    @if (status is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <MudStack>
+            <MudCard>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudAlert Severity="@(status.IsPlaying ? Severity.Success : Severity.Error)"
+                                Icon="@(status.IsPlaying ? Icons.Material.Rounded.PlayCircle : Icons.Material.Rounded.PauseCircle)">
+                                @(status.IsPlaying ? "Playing" : "Paused")
+                            </MudAlert>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudAlert Severity="@(Severity.Normal)" Icon="@(Icons.Material.Rounded.VolumeUp)">
+                                Volume: @(status.Volume)
+                            </MudAlert>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
 
-<p>This component demonstrates fetching data from the server.</p>
+            <MudCard Class="d-flex justify-center">
+                <MudToolBar>
+                    <MudIconButton Icon="@Icons.Material.Rounded.RestartAlt" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.Replay30" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.PlayArrow" OnClick="Play" Disabled="@(status.IsPlaying)" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.Pause" OnClick="Pause" Disabled="@(!status.IsPlaying)" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.Forward30" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.VolumeOff" OnClick="Mute"
+                        Disabled="@(status.Volume == 0)" />
+                </MudToolBar>
+            </MudCard>
 
-@if (status is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div>Playing: @(status.IsPlaying)</div>
-    
-    <button @onclick="Pause">Pause</button>
-    <button @onclick="Play">Play</button>
-}
+            <MudCard>
+                <MudCardHeader>Seek</MudCardHeader>
+                <MudCardContent>
+                    <MudSlider T="int" Min="0" Max="100" ValueLabel="true" Variant="Variant.Filled" />
+                </MudCardContent>
+            </MudCard>
 
-@code {
+            <MudCard>
+                <MudCardHeader>Volume</MudCardHeader>
+                <MudCardContent>
+                    <MudSlider T="int" Min="0" Max="100" Value="volume" ValueLabel="true" Variant="Variant.Filled"
+                        ValueChanged="RequestVolume" />
+                </MudCardContent>
+            </MudCard>
+        </MudStack>
+    }
+    </MudContainer>
+
+    @code {
+
+    private int volume;
     private PlaybackStatus? status;
 
     protected override async Task OnInitializedAsync()
     {
         status = await Http.GetFromJsonAsync<PlaybackStatus>("api/netflix");
+        volume = status?.Volume ?? 0;
     }
 
-    private async Task Pause() {
-        var response = await Http.PutAsync("api/netflix/pause", content: null);
+    private async Task Pause()
+    {
+        var response = await Http.PostAsync("api/netflix/pause", content: null);
         status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
     }
 
-    private async Task Play() {
-        var response = await Http.PutAsync("api/netflix/play", content: null);
+    private async Task Play()
+    {
+        var response = await Http.PostAsync("api/netflix/play", content: null);
+        status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
+    }
+
+    private async Task Mute()
+    {
+        await RequestVolume(volume: 0);
+    }
+
+    private async Task RequestVolume(int volume)
+    {
+        Console.WriteLine(volume);
+        this.volume = volume;
+        var request = new VolumeRequest(Volume: volume);
+        var response = await Http.PutAsJsonAsync("api/netflix/volume", value: request);
         status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
     }
 }

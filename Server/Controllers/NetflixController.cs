@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Eris.Shared;
-using Eris.Server.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Eris.Server.Hubs;
 using Eris.Shared.Models;
 
 namespace Eris.Server.Controllers;
@@ -23,7 +21,7 @@ public class NetflixController : ControllerBase
     [HttpGet]
     public PlaybackStatus Get()
     {
-        return new PlaybackStatus(IsPlaying: true);
+        return new PlaybackStatus(IsPlaying: true, Volume: 100);
     }
 
     [HttpPost("pause")]
@@ -46,7 +44,7 @@ public class NetflixController : ControllerBase
     public async Task<PlaybackStatus> Volume([FromBody] VolumeRequest request)
     {
         _logger.LogInformation("Volume: {}", request.Volume);
-        var volume  = Math.Clamp(value: request.Volume, min: 0, max: 100)''
+        var volume  = Math.Clamp(value: request.Volume, min: 0, max: 100);
         await _hub.Clients.All.Volume(volume);
         return new PlaybackStatus(IsPlaying: true, Volume: volume);
     }
