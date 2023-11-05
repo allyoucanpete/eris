@@ -24,6 +24,22 @@ public class NetflixController : ControllerBase
         return new PlaybackStatus(IsPlaying: true, Volume: 100);
     }
 
+    [HttpPost("back")]
+    public async Task<PlaybackStatus> Back()
+    {
+        _logger.LogInformation("Back");
+        await _hub.Clients.All.Back();
+        return new PlaybackStatus(IsPlaying: false, Volume: 100);
+    }
+
+    [HttpPost("forward")]
+    public async Task<PlaybackStatus> Forward()
+    {
+        _logger.LogInformation("Forward");
+        await _hub.Clients.All.Forward();
+        return new PlaybackStatus(IsPlaying: false, Volume: 100);
+    }
+
     [HttpPost("pause")]
     public async Task<PlaybackStatus> Pause()
     {
@@ -40,12 +56,21 @@ public class NetflixController : ControllerBase
         return new PlaybackStatus(IsPlaying: true, Volume: 100);
     }
 
-    [HttpPut("volume")]
+    [HttpPut("seek")]
     public async Task<PlaybackStatus> Volume([FromBody] VolumeRequest request)
     {
         _logger.LogInformation("Volume: {}", request.Volume);
         var volume  = Math.Clamp(value: request.Volume, min: 0, max: 100);
         await _hub.Clients.All.Volume(volume);
         return new PlaybackStatus(IsPlaying: true, Volume: volume);
+    }
+
+    [HttpPut("volume")]
+    public async Task<PlaybackStatus> Volume([FromBody] SeekRequest request)
+    {
+        _logger.LogInformation("Volume: {}", request.Position);
+        var position  = Math.Clamp(value: request.Position, min: 0, max: 7200);
+        await _hub.Clients.All.Seek(position);
+        return new PlaybackStatus(IsPlaying: true, Volume: 100);
     }
 }
