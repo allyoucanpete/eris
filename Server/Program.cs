@@ -41,12 +41,13 @@ else
     app.UseHsts();
 }
 
+app.UseCors(cors => cors.WithOrigins("chrome-extension://bmdflkmlomgmgbigbedjeillldlinbfd").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
-app.UseRouting();
+app.UseRouting();   
 
 app.UseIdentityServer();
 app.UseAuthorization();
