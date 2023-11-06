@@ -1,3 +1,5 @@
+using Eris.Shared.Models;
+
 public interface INetflixClient
 {
     Task Back();
@@ -11,4 +13,6 @@ public interface INetflixClient
     Task Seek(int position);
 
     Task Volume(int volume);
+
+    Task Status(PlaybackStatus status);
 }

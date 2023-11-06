@@ -1,14 +1,18 @@
 ﻿@page "/netflix"
+@using Microsoft.AspNetCore.SignalR.Client
 @using Eris.Shared.Models
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <PageTitle>Netflix</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mud-height-full py-4">
     <h1>Netflix</h1>
-    @if (status is null)
+    @if (_status is null)
     {
-        <p><em>Loading...</em></p>
+        <p>
+            <em>Waiting for connection...</em>
+        </p>
     }
     else
     {
@@ -17,15 +21,23 @@
                 <MudCardContent>
                     <MudGrid>
                         <MudItem xs="6">
-                            <MudAlert Severity="@(status.IsPlaying ? Severity.Success : Severity.Error)"
-                                Icon="@(status.IsPlaying ? Icons.Material.Rounded.PlayCircle : Icons.Material.Rounded.PauseCircle)">
-                                @(status.IsPlaying ? "Playing" : "Paused")
+                            <MudAlert Severity="@(_status.IsPlaying ? Severity.Success : Severity.Error)"
+                                      Icon="@(_status.IsPlaying ? Icons.Material.Rounded.PlayCircle : Icons.Material.Rounded.PauseCircle)">
+                                @(_status.IsPlaying ? "Playing" : "Paused")
                             </MudAlert>
                         </MudItem>
                         <MudItem xs="6">
                             <MudAlert Severity="@(Severity.Normal)" Icon="@(Icons.Material.Rounded.VolumeUp)">
-                                Volume: @(status.Volume)
+                                Volume: @(_status.Volume)
                             </MudAlert>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <div class="d-flex">
+                                <MudText>@FormatTimestamp(_status.Elapsed)</MudText>
+                                <MudSpacer/>
+                                <MudText>@FormatTimestamp(_status.Duration)</MudText>
+                            </div>
+                            <MudProgressLinear Color="Color.Primary" Min="0" Max="@_status.Duration" Value="@_status.Elapsed" Class="my-7"/>
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
@@ -33,68 +45,111 @@
 
             <MudCard Class="d-flex justify-center">
                 <MudToolBar>
-                    <MudIconButton Icon="@Icons.Material.Rounded.RestartAlt" />
-                    <MudIconButton Icon="@Icons.Material.Rounded.Replay30" />
-                    <MudIconButton Icon="@Icons.Material.Rounded.PlayArrow" OnClick="Play" Disabled="@(status.IsPlaying)" />
-                    <MudIconButton Icon="@Icons.Material.Rounded.Pause" OnClick="Pause" Disabled="@(!status.IsPlaying)" />
-                    <MudIconButton Icon="@Icons.Material.Rounded.Forward30" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.RestartAlt" OnClick="Restart"/>
+                    <MudIconButton Icon="@Icons.Material.Rounded.Replay30" OnClick="Back"/>
+                    <MudIconButton Icon="@Icons.Material.Rounded.PlayArrow" OnClick="Play" Disabled="@(_status.IsPlaying)"/>
+                    <MudIconButton Icon="@Icons.Material.Rounded.Pause" OnClick="Pause" Disabled="@(!_status.IsPlaying)"/>
+                    <MudIconButton Icon="@Icons.Material.Rounded.Forward30" OnClick="Forward"/>
                     <MudIconButton Icon="@Icons.Material.Rounded.VolumeOff" OnClick="Mute"
-                        Disabled="@(status.Volume == 0)" />
+                                   Disabled="@(_status.Volume == 0)"/>
                 </MudToolBar>
             </MudCard>
 
             <MudCard>
                 <MudCardHeader>Seek</MudCardHeader>
                 <MudCardContent>
-                    <MudSlider T="int" Min="0" Max="100" ValueLabel="true" Variant="Variant.Filled" />
+                    <div class="d-flex">
+                        <MudText>@FormatTimestamp(_status.Elapsed)</MudText>
+                        <MudSpacer/>
+                        <MudText>@FormatTimestamp(_status.Duration)</MudText>
+                    </div>
+                    <MudSlider T="int" Min="0" Max="@_status.Duration" Variant="Variant.Filled" ValueChanged="Seek"/>
                 </MudCardContent>
             </MudCard>
 
             <MudCard>
                 <MudCardHeader>Volume</MudCardHeader>
                 <MudCardContent>
-                    <MudSlider T="int" Min="0" Max="100" Value="volume" ValueLabel="true" Variant="Variant.Filled"
-                        ValueChanged="RequestVolume" />
+                    <div class="d-flex">
+                        <MudText>0</MudText>
+                        <MudSpacer/>
+                        <MudText>100</MudText>
+                    </div>
+                    <MudSlider T="int" Min="0" Max="100" ValueLabel="true" Variant="Variant.Filled"
+                               ValueChanged="Volume"/>
                 </MudCardContent>
             </MudCard>
         </MudStack>
     }
-    </MudContainer>
+</MudContainer>
 
-    @code {
+@code {
 
-    private int volume;
-    private PlaybackStatus? status;
+    private int _position;
+    private int _volume;
+    private PlaybackStatus? _status;
 
     protected override async Task OnInitializedAsync()
     {
-        status = await Http.GetFromJsonAsync<PlaybackStatus>("api/netflix");
-        volume = status?.Volume ?? 0;
+        var connection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/hubs/netflix"))
+            .Build();
+
+        connection.On<PlaybackStatus>("Status", status =>
+        {
+            _status = status;
+    _volume = _status.Volume;
+    _position = _status.Elapsed;
+
+            StateHasChanged();
+        });
+
+        await connection.StartAsync();
+    }
+
+    private async Task Back()
+    {
+        _ = await Http.PostAsync("api/netflix/back", content: null);
+    }
+
+    private async Task Forward()
+    {
+        _ = await Http.PostAsync("api/netflix/forward", content: null);
     }
 
     private async Task Pause()
     {
-        var response = await Http.PostAsync("api/netflix/pause", content: null);
-        status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
+        _ = await Http.PostAsync("api/netflix/pause", content: null);
     }
 
     private async Task Play()
     {
-        var response = await Http.PostAsync("api/netflix/play", content: null);
-        status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
+        _ = await Http.PostAsync("api/netflix/play", content: null);
     }
 
-    private async Task Mute()
+    private async Task Mute() => await Volume(vol: 0);
+
+    private async Task Restart() => await Seek(pos: 0);
+
+    private async Task Seek(int pos)
     {
-        await RequestVolume(volume: 0);
+        var request = new SeekRequest(Position: pos);
+        _ = await Http.PutAsJsonAsync("api/netflix/seek", value: request);
     }
 
-    private async Task RequestVolume(int volume)
+    private async Task Volume(int vol)
     {
-        Console.WriteLine(volume);
-        this.volume = volume;
-        var request = new VolumeRequest(Volume: volume);
-        var response = await Http.PutAsJsonAsync("api/netflix/volume", value: request);
-        status = await response.Content.ReadFromJsonAsync<PlaybackStatus>();
+        var request = new VolumeRequest(Volume: vol);
+        _ = await Http.PutAsJsonAsync("api/netflix/volume", value: request);
     }
+
+    private string FormatTimestamp(int milliseconds)
+    {
+        var span = TimeSpan.FromMilliseconds(milliseconds);
+
+        return span.TotalHours >= 1
+            ? $"{span.TotalHours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"
+            : $"{span.Minutes:D2}:{span.Seconds:D2}";
+    }
+
 }
