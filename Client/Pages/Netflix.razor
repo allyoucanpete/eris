@@ -8,7 +8,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mud-height-full py-4">
     <h1>Netflix</h1>
-    @if (_status is null)
+    @if (Status is null)
     {
         <p>
             <em>Waiting for connection...</em>
@@ -21,23 +21,23 @@
                 <MudCardContent>
                     <MudGrid>
                         <MudItem xs="6">
-                            <MudAlert Severity="@(_status.IsPlaying ? Severity.Success : Severity.Error)"
-                                      Icon="@(_status.IsPlaying ? Icons.Material.Rounded.PlayCircle : Icons.Material.Rounded.PauseCircle)">
-                                @(_status.IsPlaying ? "Playing" : "Paused")
+                            <MudAlert Severity="@(Status.IsPlaying ? Severity.Success : Severity.Error)"
+                                      Icon="@(Status.IsPlaying ? Icons.Material.Rounded.PlayCircle : Icons.Material.Rounded.PauseCircle)">
+                                @(Status.IsPlaying ? "Playing" : "Paused")
                             </MudAlert>
                         </MudItem>
                         <MudItem xs="6">
                             <MudAlert Severity="@(Severity.Normal)" Icon="@(Icons.Material.Rounded.VolumeUp)">
-                                Volume: @(_status.Volume)
+                                Volume: @(Status.Volume)
                             </MudAlert>
                         </MudItem>
                         <MudItem xs="12">
                             <div class="d-flex">
-                                <MudText>@FormatTimestamp(_status.Elapsed)</MudText>
+                                <MudText>@FormatTimestamp(Status.Elapsed)</MudText>
                                 <MudSpacer/>
-                                <MudText>@FormatTimestamp(_status.Duration)</MudText>
+                                <MudText>@FormatTimestamp(Status.Duration)</MudText>
                             </div>
-                            <MudProgressLinear Color="Color.Primary" Min="0" Max="@_status.Duration" Value="@_status.Elapsed" Class="my-7"/>
+                            <MudProgressLinear Color="Color.Primary" Min="0" Max="@Status.Duration" Value="@Status.Elapsed" Class="my-7"/>
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
@@ -47,11 +47,11 @@
                 <MudToolBar>
                     <MudIconButton Icon="@Icons.Material.Rounded.RestartAlt" OnClick="Restart"/>
                     <MudIconButton Icon="@Icons.Material.Rounded.Replay30" OnClick="Back"/>
-                    <MudIconButton Icon="@Icons.Material.Rounded.PlayArrow" OnClick="Play" Disabled="@(_status.IsPlaying)"/>
-                    <MudIconButton Icon="@Icons.Material.Rounded.Pause" OnClick="Pause" Disabled="@(!_status.IsPlaying)"/>
+                    <MudIconButton Icon="@Icons.Material.Rounded.PlayArrow" OnClick="Play" Disabled="@(Status.IsPlaying)"/>
+                    <MudIconButton Icon="@Icons.Material.Rounded.Pause" OnClick="Pause" Disabled="@(!Status.IsPlaying)"/>
                     <MudIconButton Icon="@Icons.Material.Rounded.Forward30" OnClick="Forward"/>
                     <MudIconButton Icon="@Icons.Material.Rounded.VolumeOff" OnClick="Mute"
-                                   Disabled="@(_status.Volume == 0)"/>
+                                   Disabled="@(Status.Volume == 0)"/>
                 </MudToolBar>
             </MudCard>
 
@@ -59,11 +59,11 @@
                 <MudCardHeader>Seek</MudCardHeader>
                 <MudCardContent>
                     <div class="d-flex">
-                        <MudText>@FormatTimestamp(_status.Elapsed)</MudText>
+                        <MudText>@FormatTimestamp(Status.Elapsed)</MudText>
                         <MudSpacer/>
-                        <MudText>@FormatTimestamp(_status.Duration)</MudText>
+                        <MudText>@FormatTimestamp(Status.Duration)</MudText>
                     </div>
-                    <MudSlider T="int" Min="0" Max="@_status.Duration" Variant="Variant.Filled" ValueChanged="Seek"/>
+                    <MudSlider T="int" Min="0" Max="@Status.Duration" Variant="Variant.Filled" ValueChanged="RequestSeek"/>
                 </MudCardContent>
             </MudCard>
 
@@ -76,7 +76,7 @@
                         <MudText>100</MudText>
                     </div>
                     <MudSlider T="int" Min="0" Max="100" ValueLabel="true" Variant="Variant.Filled"
-                               ValueChanged="Volume"/>
+                               ValueChanged="RequestVolume"/>
                 </MudCardContent>
             </MudCard>
         </MudStack>
@@ -85,9 +85,9 @@
 
 @code {
 
-    private int _position;
-    private int _volume;
-    private PlaybackStatus? _status;
+    // private int Position { get; set; }
+    // private int Volume { get; set; }
+    private PlaybackStatus? Status { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -97,9 +97,9 @@
 
         connection.On<PlaybackStatus>("Status", status =>
         {
-            _status = status;
-    _volume = _status.Volume;
-    _position = _status.Elapsed;
+            Status = status;
+            // Volume = Status.Volume;
+            // Position = Status.Elapsed;
 
             StateHasChanged();
         });
@@ -127,17 +127,17 @@
         _ = await Http.PostAsync("api/netflix/play", content: null);
     }
 
-    private async Task Mute() => await Volume(vol: 0);
+    private async Task Mute() => await RequestVolume(vol: 0);
 
-    private async Task Restart() => await Seek(pos: 0);
+    private async Task Restart() => await RequestSeek(pos: 0);
 
-    private async Task Seek(int pos)
+    private async Task RequestSeek(int pos)
     {
         var request = new SeekRequest(Position: pos);
         _ = await Http.PutAsJsonAsync("api/netflix/seek", value: request);
     }
 
-    private async Task Volume(int vol)
+    private async Task RequestVolume(int vol)
     {
         var request = new VolumeRequest(Volume: vol);
         _ = await Http.PutAsJsonAsync("api/netflix/volume", value: request);
