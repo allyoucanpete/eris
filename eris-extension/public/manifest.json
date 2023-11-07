@@ -1,0 +1,27 @@
+{
+   "name": "Eris Extension",
+   "description": "Browser extension for Eris.",
+   "version": "1.0",
+   "manifest_version": 3,
+   "permissions": [
+      "tabs",
+      "activeTab",
+      "scripting",
+      "webNavigation"
+   ],
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [
+      {
+         "matches": [
+            "https://www.netflix.com/watch/*"
+         ],
+         "run_at": "document_idle",
+         "world": "MAIN",
+         "js": [
+            "content.js"
+         ]
+      }
+   ]
+}

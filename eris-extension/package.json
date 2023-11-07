@@ -1,0 +1,38 @@
+{
+  "name": "eris-extension",
+  "version": "1.0.0",
+  "description": "Browser extension for Eris.",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack/webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sixpeteunder/eris-extension.git"
+  },
+  "keywords": [
+    "eris",
+    "extension"
+  ],
+  "author": "sixpeteunder",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sixpeteunder/eris-extension/issues"
+  },
+  "homepage": "https://github.com/sixpeteunder/eris-extension#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.0.248",
+    "clean-webpack-plugin": "4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "5.5.3",
+    "ts-loader": "9.5.0",
+    "typescript": "5.2.2",
+    "webpack": "5.89.0",
+    "webpack-cli": "5.1.4"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^7.0.12",
+    "@types/node": "^20.8.10"
+  }
+}
