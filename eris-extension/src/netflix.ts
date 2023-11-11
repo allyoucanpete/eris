@@ -1,6 +1,6 @@
 // Here be dragons
 
-import { PlaybackStatus } from "./models";
+import {PlaybackStatus} from "./models";
 
 const skip = 30 * 1000;
 
@@ -28,18 +28,20 @@ export function volume(vol: number): void {
 }
 
 export function status(): PlaybackStatus {
-    const p = player();
+    const {getCurrentTime, getDuration, getPlaying, getVolume} = player();
     return {
-        duration: p.getDuration(),
-        elapsed: p.getCurrentTime(),
-        isPlaying: p.getPlaying(),
-        volume: Math.round(p.getVolume() * 100),
+        duration: getDuration(),
+        elapsed: getCurrentTime(),
+        isPlaying: getPlaying(),
+        volume: Math.round(getVolume() * 100),
     }
 }
 
 function player(): any {
-    const videoPlayer = window.netflix.appContext.state.playerApp.getAPI().videoPlayer;
-    const sessionId = videoPlayer.getAllPlayerSessionIds().filter((sessionId: string) => sessionId.startsWith("watch-"))[0];
-    const player = videoPlayer.getVideoPlayerBySessionId(sessionId);
-    return player;
+    const {
+        getAllPlayerSessionIds,
+        getVideoPlayerBySessionId
+    } = window.netflix.appContext.state.playerApp.getAPI().videoPlayer;
+    const sessionId = getAllPlayerSessionIds().filter((sessionId: string) => sessionId.startsWith("watch-"))[0];
+    return getVideoPlayerBySessionId(sessionId);
 }
