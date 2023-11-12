@@ -1,6 +1,6 @@
 // Here be dragons
 
-import {PlaybackStatus} from "./models";
+import {PlaybackStatus, Metadata, VideoType} from "./models";
 
 const skip = 30 * 1000;
 
@@ -19,6 +19,7 @@ export function pause(): void {
 export function play(): void {
     player().play();
 }
+
 export function seek(position: number): void {
     player().seek(position);
 }
@@ -28,13 +29,47 @@ export function volume(vol: number): void {
 }
 
 export function status(): PlaybackStatus {
-    const {getCurrentTime, getDuration, getPlaying, getVolume} = player();
+    const {getCurrentTime, getDuration, getMovieId, getPlaying, getVolume} = player();
     return {
         duration: getDuration(),
         elapsed: getCurrentTime(),
+        metadata: metadata(getMovieId()),
         isPlaying: getPlaying(),
         volume: Math.round(getVolume() * 100),
     }
+}
+
+function metadata(videoId: number): Metadata {
+    const {getVideoMetadataByVideoId} = window.netflix.appContext.state.playerApp.getAPI();
+    const metadata = getVideoMetadataByVideoId(videoId);
+    const video = metadata.getVideo()._video;
+    const type: VideoType = video.type;
+
+    const data: Metadata = {
+        type: type,
+        title: video.title,
+        artwork: video.artwork,
+        boxart: video.boxart,
+        storyart: video.storyart,
+        synopsis: video.synopsis,
+    }
+    
+    if (type === "show") {
+        const currentVideo = metadata.getCurrentVideo()._video;
+
+        data.episode = {
+            seq: currentVideo.seq,
+            title: currentVideo.title,
+            thumbs: currentVideo.thumbs,
+            stills: currentVideo.stills,
+            synopsis: currentVideo.synopsis,
+        };
+        data.season = {
+            
+        }
+    }
+    
+    return data;
 }
 
 function player(): any {
