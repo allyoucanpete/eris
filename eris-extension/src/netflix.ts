@@ -17,7 +17,12 @@ export function pause(): void {
 }
 
 export function play(): void {
-    player().play();
+    const element: HTMLButtonElement | null = document.querySelector("[data-uia=\"player-blocked-play\"]");
+    if (element !== null) {
+        element.click()
+    } else {
+        player().play();
+    }
 }
 
 export function seek(position: number): void {
