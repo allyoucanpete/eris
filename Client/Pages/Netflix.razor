@@ -148,7 +148,7 @@
         var span = TimeSpan.FromMilliseconds(milliseconds);
 
         return span.TotalHours >= 1
-            ? $"{span.TotalHours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"
+            ? $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"
             : $"{span.Minutes:D2}:{span.Seconds:D2}";
     }
 
