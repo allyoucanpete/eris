@@ -1,4 +1,5 @@
 using Eris.Shared.Models;
+using Eris.Shared.Models.Response;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Eris.Server.Hubs;

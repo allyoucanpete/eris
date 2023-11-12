@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Eris.Server.Hubs;
 using Eris.Shared.Models;
+using Eris.Shared.Models.Request;
 
 namespace Eris.Server.Controllers;
 

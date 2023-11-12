@@ -1,3 +1,3 @@
-namespace Eris.Shared.Models;
+namespace Eris.Shared.Models.Request;
 
 public record VolumeRequest(int Volume);
