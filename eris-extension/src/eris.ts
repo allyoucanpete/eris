@@ -1,5 +1,5 @@
 import {back, forward, pause, play, seek, status, volume} from "./netflix";
-import {HubConnection, HubConnectionBuilder} from "@microsoft/signalr";
+import {HubConnection, HubConnectionBuilder, HubConnectionState} from "@microsoft/signalr";
 import {PlaybackStatus} from "./models";
 
 export class Eris {
@@ -8,7 +8,7 @@ export class Eris {
     constructor(private url: string) {
     }
 
-    connect(): void {
+    setup(): void {
         const connection = new HubConnectionBuilder()
             .withUrl(this.url, {withCredentials: true})
             .build();
@@ -48,13 +48,35 @@ export class Eris {
             volume(vol / 100);
             await this.report(status())
         });
-
-        connection.start().catch(console.error);
+        
+        // Skip connecting here, check connection before reporting status.
         this.connection = connection;
     }
 
-    async report(status: PlaybackStatus): Promise<void> {
+    async report(status: PlaybackStatus | null): Promise<void> {
         console.debug("Status", status)
-        await this.connection?.send("Status", status);
+        
+        if (status === null) {
+            console.debug("Status was null, aborting.")
+            return;
+        }
+        
+        if (this.connection === null) {
+            console.debug("SignalR connection was null, aborting.")
+            return;
+        }
+        
+        if (this.connection.state !== HubConnectionState.Connected) {
+            console.debug("SignalR connection was lost, reconnecting.")
+            
+            try {
+                await this.connection.start();    
+            } catch (e) {
+                console.debug("Could not reestablish SignalR connection, aborting.")
+                return;
+            }
+        }
+        
+        await this.connection.send("Status", status);
     }
 }

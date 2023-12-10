@@ -42,20 +42,29 @@ export function volume(vol: number): void {
     player().setVolume(vol);
 }
 
-export function status(): PlaybackStatus {
-    const {getCurrentTime, getDuration, getMovieId, getPlaying, getVolume} = player();
-    return {
-        duration: getDuration(),
-        elapsed: getCurrentTime(),
-        metadata: metadata(getMovieId()),
-        isPlaying: getPlaying(),
-        volume: Math.round(getVolume() * 100),
+export function status(): PlaybackStatus | null {
+    try {
+        const {getCurrentTime, getDuration, getMovieId, getPlaying, getVolume} = player();
+        return {
+            duration: getDuration(),
+            elapsed: getCurrentTime(),
+            metadata: metadata(getMovieId()),
+            isPlaying: getPlaying(),
+            volume: Math.round(getVolume() * 100),
+        }
+    } catch (e: any) {
+        console.debug(e.message);
+        return null;
     }
 }
 
 function metadata(videoId: number): Metadata {
     const {getVideoMetadataByVideoId} = window.netflix.appContext.state.playerApp.getAPI();
     const metadata = getVideoMetadataByVideoId(videoId);
+    if (!metadata) {
+        throw new Error("Video metadata unavailable, aborting.");
+    }
+    
     const video = metadata.getVideo()._video;
     const type: VideoType = video.type;
 

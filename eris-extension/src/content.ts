@@ -11,6 +11,6 @@ declare global {
 const url = "http://localhost:5091/hubs/netflix"; // Assume Eris server will always be running on localhost.
 
 const eris = new Eris(url);
-eris.connect();
+eris.setup();
 setInterval(() => eris.report(status()), 500);
 
