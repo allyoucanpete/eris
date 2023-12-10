@@ -17,13 +17,21 @@ export function pause(): void {
 }
 
 export function play(): void {
-    const element: HTMLButtonElement | null = document.querySelector("[data-uia=\"player-blocked-play\"]");
-    if (element !== null) {
-        element.click()
+    const view: HTMLDivElement | null = document.querySelector("[data-uia=\"player\"]");
+    // const trigger: HTMLButtonElement | null = document.querySelector("[data-uia=\"player-blocked-play\"]");
+    const trigger: HTMLDivElement | null = document.querySelector("[class=\"watch-video--autoplay-blocked\"]");
+    
+    if (trigger !== null && view !== null) {
+        console.debug("Playing from blocked screen");
+        view.click();
+        setTimeout(() => trigger.click(), 500);
     } else {
+        console.debug("Playing from player screen");
         player().play();
     }
 }
+
+
 
 export function seek(position: number): void {
     player().seek(position);
