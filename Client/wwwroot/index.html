@@ -7,6 +7,7 @@
     <title>Eris</title>
     <base href="/"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
     <link href="css/app.css" rel="stylesheet"/>
     <link rel="icon" type="image/png" href="favicon.png"/>
@@ -30,18 +31,57 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="js/nosleep.min.js"></script>
 <script>
-    if (!navigator.wakeLock) {
-        console.debug("WakeLock API is not supported. Screen will not be kept active.")
+    document.addEventListener("DOMContentLoaded", function() {
+        Toastify({
+            text: "Tap anywhere to enable WakeLock",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: "linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235))",
+            },
+        }).showToast();
+    });
+    
+    const nosleep = new NoSleep();
+    
+    // (must be wrapped in a user input event handler e.g. a mouse or touch handler)
+    document.addEventListener('click', function enableNoSleep() {
+        document.removeEventListener('click', enableNoSleep, false);
+        nosleep.enable();
 
-    } else {
-        try {
-            navigator.wakeLock.request("screen");
-            console.debug("WakeLock enabled. Screen will be kept active.");
-        } catch (err) {
-            console.error(`WakeLock could not be enabled.`, err);
-        }
-    }
+        Toastify({
+            text: "WakeLock enabled",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            stopOnFocus: true,
+            style: {
+                background: "linear-gradient(to right, rgb(34, 197, 94), rgb(21, 128, 61))",
+            },
+        }).showToast();
+    }, false);
+    
+    // Requires secure context (HTTPS)
+    //
+    // if (!navigator.wakeLock) {
+    //     console.debug("WakeLock API is not supported. Screen will not be kept active.")
+    //     alert("WakeLock API is not supported. Screen will not be kept active.")
+    //
+    // } else {
+    //     try {
+    //         navigator.wakeLock.request("screen");
+    //         console.debug("WakeLock enabled. Screen will be kept active.");
+    //         alert("WakeLock enabled. Screen will be kept active.");
+    //     } catch (err) {
+    //         console.error(`WakeLock could not be enabled.`, err);
+    //         alert(`WakeLock could not be enabled. ${err}`);
+    //     }
+    // }
 </script>
 <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
 <script src="_framework/blazor.webassembly.js"></script>
