@@ -26,6 +26,12 @@
                     <MudSpacer/>
                     <MudChip Variant="Variant.Text" Color="Color.Info" Style="text-transform: capitalize">@Status.Metadata.Type</MudChip>
                 </div>
+                @if (Status.Metadata.Type == "show")
+                {
+                    <div class="px-4 d-flex align-center">
+                        <MudText>@SeasonDetails()</MudText>
+                    </div>
+                }
                 <MudCardContent>
                     <MudGrid>
                         <MudItem xs="4" md="3">
@@ -156,7 +162,23 @@
         _ = await Http.PutAsJsonAsync("api/netflix/volume", value: request);
     }
 
-    private string FormatTimestamp(int milliseconds)
+    private string SeasonDetails()
+    {
+        var (episodeSeq, episodeTitle, _, _, _, season) = Status!.Metadata.Episode!;
+        var (seasonSeq, seasonYear, _, _, seasonLongName) = season;
+
+        var seasonName = string.IsNullOrWhiteSpace(seasonLongName) ? $"Season {seasonSeq}" : seasonLongName;
+        var details = $"{seasonName}, Episode {episodeSeq}";
+        
+        if (!string.IsNullOrWhiteSpace(episodeTitle))
+        {
+            details = $"{details} - {episodeTitle}";
+        }
+        
+        return $"{details} ({seasonYear})";
+    }
+
+    private static string FormatTimestamp(int milliseconds)
     {
         var span = TimeSpan.FromMilliseconds(milliseconds);
 
@@ -164,5 +186,4 @@
             ? $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"
             : $"{span.Minutes:D2}:{span.Seconds:D2}";
     }
-
 }
