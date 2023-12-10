@@ -24,6 +24,7 @@ export function play(): void {
     if (trigger !== null && view !== null) {
         console.debug("Playing from blocked screen");
         view.click();
+        player().play();
         setTimeout(() => trigger.click(), 500);
     } else {
         console.debug("Playing from player screen");
@@ -69,6 +70,7 @@ function metadata(videoId: number): Metadata {
     
     if (type === "show") {
         const currentVideo = metadata.getCurrentVideo()._video;
+        const currentSeason = metadata.getCurrentVideo()._season._season;
 
         data.episode = {
             seq: currentVideo.seq,
@@ -76,10 +78,14 @@ function metadata(videoId: number): Metadata {
             thumbs: currentVideo.thumbs,
             stills: currentVideo.stills,
             synopsis: currentVideo.synopsis,
+            season: {
+                seq: currentSeason.seq,
+                year: currentSeason.year,
+                title: currentSeason.title,
+                shortName: currentSeason.shortName,
+                longName: currentSeason.longName
+            }
         };
-        data.season = {
-            
-        }
     }
     
     return data;

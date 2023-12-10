@@ -1,4 +1,5 @@
 import {Image} from "./image";
+import {Season} from "./season";
 
 export interface Episode {
     seq: number;
@@ -6,4 +7,5 @@ export interface Episode {
     thumbs: Image[];
     stills: Image[];
     synopsis: string;
+    season: Season;
 }

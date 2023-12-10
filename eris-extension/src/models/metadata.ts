@@ -8,5 +8,4 @@ export interface Metadata {
     storyart: string;
     synopsis: string;
     episode?: Episode;
-    season?: Season;
 }
